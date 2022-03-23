@@ -14,11 +14,12 @@ class CsvCollection extends ResourceCollection
      */
     public function toArray($request)
     {
-
-
-
-        return [
-            'items'
-        ];
+        return parent::toArray($request);
+        /*return [
+            'data' => $this->collection,
+            'links' => [
+                'self' => 'link-value',
+            ],
+        ];*/
     }
 }

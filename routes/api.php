@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ParseFileController;
+use App\Http\Resources\CsvCollection;
+use App\Models\CsvFile;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,3 +22,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post('/parse-file', [ParseFileController::class, 'parseFile']);
+Route::post('/ajax-paginate', function () {
+    return new CsvCollection(CsvFile::paginate(config('app.limit_pagination')));
+});

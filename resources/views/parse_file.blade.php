@@ -72,10 +72,89 @@
                 },
             });
         }
+
+        $(document).on('click', '.ajax_pager a', function (e) {
+            e.preventDefault();
+            let href = $(this).attr('href');
+
+            $.ajax({
+                url: href,
+                type: "POST",
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                beforeSend: function () {
+                    $('#content_wrapper').addClass('loading');
+                },
+                complete: function() {
+                    $('#content_wrapper').removeClass('loading');
+                },
+                success: function (json) {
+                    $('#content_wrapper #results tbody').empty();
+
+                    json['data'].forEach(function (item, index) {
+                        let html = '<tr><td>' + index + '</td>';
+                            html += '<td>' + item['year'] + '</td>';
+                            html += '<td>' + item['industry_code'] + '</td>';
+                            html += '<td>' + item['industry_name'] + '</td>';
+                            html += '<td>' + item['rme_size_grp'] + '</td>';
+                            html += '<td>' + item['variable'] + '</td>';
+                            html += '<td>' + item['value'] + '</td>';
+                            html += '<td>' + item['unit'] + '</td></tr>';
+
+                        $('#content_wrapper #results tbody').append(html);
+                    });
+
+                    $('#content_wrapper #results tfoot .pagination').empty();
+
+                    json['meta']['links'].forEach(function (item) {
+                        let html = '';
+
+                        if (item['url']) {
+                            html = '<li class="page-item ' + (item['active'] ? 'active' : '') + '"><a class="page-link" href="' + item['url'] + '">' + item['label'] + '</a></li>';
+                        } else {
+                            html = '<li class="page-item disabled" aria-disabled="true"><span class="page-link">...</span></li>';
+                        }
+
+                        $('#content_wrapper #results tfoot .pagination').append(html);
+                    });
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                    alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                },
+            });
+        });
     </script>
     <style type="text/css">
         form button:not([disabled]) span{
             display: none;
+        }
+        #content_wrapper {
+            position: relative;
+        }
+        .loading::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,.75);
+            cursor: not-allowed;
+            z-index: 10;
+        }
+        .loading_text {
+            display: none;
+        }
+        .loading .loading_text {
+            display: block;
+            position: absolute;
+            right: 50%;
+            left: 50%;
+            top: 50%;
+            color: white;
+            font-size: 5em;
+            font-weight: bold;
+            z-index: 11;
         }
     </style>
 </html>

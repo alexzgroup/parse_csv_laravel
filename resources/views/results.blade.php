@@ -1,3 +1,4 @@
+<span class="loading_text">Loading...</span>
 <div class="row">
     <div class="col-12 my-2">
         @if (empty($data['error']) && Request::isMethod('post'))
