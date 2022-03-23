@@ -232,4 +232,6 @@ return [
 
     ],
 
+    'required_fields' => ['year', 'industry_code', 'industry_name', 'rme_size_grp', 'variable', 'value', 'unit'],
+
 ];

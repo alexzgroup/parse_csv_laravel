@@ -19,7 +19,7 @@ class ParseFileController extends Controller
         $data = [];
 
         if (!empty($page)) {
-            $data['keys'] = ['year', 'industry_code', 'industry_name', 'rme_size_grp', 'variable', 'value', 'unit'];
+            $data['keys'] = config('app.required_fields');
             $data['items'] = CsvFile::paginate($this->limit);
         }
 
@@ -32,43 +32,20 @@ class ParseFileController extends Controller
     public function parseFile(Request $request)
     {
         $file = $request->file('csv');
-        $message = '';
-        $destinationPath = 'uploads';
-        $data = [];
-
-        $file_system = new Filesystem;
-        $file_system->cleanDirectory($destinationPath);
 
         if ($file) {
-            CsvFile::truncate();
-
-            $file_info = [
-                'name' =>   $file->getClientOriginalName(),
-                'extension' => $file->getClientOriginalExtension(),
-                'real_path' => $file->getRealPath(),
-                'size' => $file->getSize(),
-                'mime_type' => $file->getMimeType(),
-            ];
-
-            $file->move($destinationPath, $file->getClientOriginalName());
-            $file_real_path = public_path() . '/' . $destinationPath . '/' . $file->getClientOriginalName();
-            $file_data = array_map('str_getcsv', file($file_real_path));
-
-            foreach ($file_data as $key => $row) {
-                if ($key === 0) {
-                    $data['keys'] = $row;
-                    continue;
-                }
-                CsvFile::create(array_combine($data['keys'], $row));
-            }
-
+            $data = CsvFile::parseFile($file);
+            $data['keys'] = config('app.required_fields');
             $data['items'] = CsvFile::paginate($this->limit);
-
         } else {
-            $file_info = null;
-            $message = 'Выберите файл!';
+            $data['error'] = 'Файл не выбран!';
         }
 
-        return view('parse_file', compact('file_info', 'message', 'data'));
+        // если Ajax отправим кусочек
+        if ($request->post('ajax')) {
+            return view('results', compact('data'));
+        } else {
+            return view('parse_file', compact('data'));
+        }
     }
 }

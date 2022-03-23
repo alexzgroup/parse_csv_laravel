@@ -15,7 +15,7 @@
                 <nav class="navbar navbar-expand-lg navbar-light bg-light">
                     <div class="container-fluid">
                         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                            <form class="d-flex" method="post" enctype="multipart/form-data">
+                            <form class="d-flex" id="form_data" method="post" enctype="multipart/form-data">
                                 @csrf
                                 <div class="form-file col">
                                     <input type="file" class="form-file-input" name="csv" id="customFile">
@@ -24,80 +24,58 @@
                                         <span class="form-file-button">Browse</span>
                                     </label>
                                 </div>
-                                <button class="col btn btn-outline-success" type="submit">Parse File</button>
+                                <button class="col btn btn-outline-success" type="submit">
+                                    Parse File
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                </button>
+                                <button class="col btn btn-outline-danger mx-2" onclick="send_form();" type="button">
+                                    Ajax Request
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                </button>
                             </form>
                         </div>
                     </div>
                 </nav>
             </div>
-            <div class="col">
-                @if (!empty($file_info))
-                    <table class="table table-dark table-bordered">
-                        <thead>
-                            <tr>
-                                @foreach (array_keys($file_info) as $key)
-                                    <th>{{ $key }}</th>
-                                @endforeach
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                @foreach ($file_info as $property)
-                                    <td>{{ $property }}</td>
-                                @endforeach
-                            </tr>
-                        </tbody>
-                    </table>
-                @elseif (Request::isMethod('post'))
-                    <div class="alert alert-danger my-3">{{ $message }}</div>
-                @endif
-            </div>
         </div>
-
-        @if (!empty($data['items']))
-            <div class="row">
-                <div class="col" id="results">
-                    <table class="table table-striped">
-                        <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            @foreach ($data['keys'] as $key)
-                                <th scope="col">{{ $key }}</th>
-                            @endforeach
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach ($data['items'] as $key => $item)
-                            <tr>
-                                <th scope="row">{{ $key + 1 }}</th>
-                                <td>{{ $item->year }}</td>
-                                <td>{{ $item->industry_code }}</td>
-                                <td>{{ $item->industry_name }}</td>
-                                <td>{{ $item->rme_size_grp }}</td>
-                                <td>{{ $item->variable }}</td>
-                                <td>{{ $item->value }}</td>
-                                <td>{{ $item->unit }}</td>
-                            </tr>
-                        @endforeach
-                        </tbody>
-                        <tfoot>
-                        <tr>
-                            <td colspan="8" class="ajax_pager">
-                                <div class="">
-                                    {{ $data['items']->links() }}
-                                </div>
-                                <div class="">
-                                   Total: {{ $data['items']->total() }}
-                                </div>
-                            </td>
-                        </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        @endif
+        <div id="content_wrapper">
+            @include('results')
+        </div>
     </div>
 </body>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        function send_form(){
+            let formData = new FormData(document.forms.form_data);
+                formData.append('ajax', '1');
 
+            $.ajax({
+                url: '/api/parse-file',
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: "html",
+                beforeSend: function () {
+                    $('form button').prop('disabled', true);
+                },
+                complete: function() {
+                    $('form button').prop('disabled', false);
+                },
+                success: function (html) {
+                    $('#content_wrapper').html(html);
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                    alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                },
+            });
+        }
+    </script>
+    <style type="text/css">
+        form button:not([disabled]) span{
+            display: none;
+        }
+    </style>
 </html>
